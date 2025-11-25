@@ -1,8 +1,8 @@
 # Netlify configuration for ChatZa project
 
 [build]
-  # Command to build the project (Vite React app)
-  command = "npm run build"
+  # Command to install dependencies (including devDeps) and build
+  command = "npm ci --include=dev && npm run build"
   # Directory that contains the built files to be served
   publish = "dist"
 
