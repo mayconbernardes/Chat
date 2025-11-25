@@ -1,0 +1,17 @@
+# Netlify configuration for ChatZa project
+
+[build]
+  # Command to build the project (Vite React app)
+  command = "npm run build"
+  # Directory that contains the built files to be served
+  publish = "dist"
+
+# Optional: Redirect all routes to index.html for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Optional: Set environment variables if needed
+[context.production.environment]
+  NODE_ENV = "production"

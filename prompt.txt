@@ -1,0 +1,16 @@
+Na página de registro do meu aplicativo de chat online mundial, quero adicionar uma nova seção voltada para vendas, trocas e anúncios comerciais.
+O objetivo é monetizar o site de forma inteligente, mantendo tudo agradável, atrativo e totalmente integrado ao layout atual, sem alterar o formato principal da página.
+
+Essa nova seção deve:
+
+Ser visualmente leve e bem organizada.
+
+Não interferir no fluxo padrão de registro.
+
+Permitir conteúdos como anúncios, ofertas, serviços, produtos e trocas entre usuários.
+
+Ser facilmente escalável para futuras funcionalidades de monetização.
+
+Transmitir profissionalismo e confiança ao usuário.
+
+Crie uma proposta de design e distribuição dessa seção que siga o estilo existente do meu aplicativo e garanta uma experiência fluida tanto para novos usuários quanto para usuários recorrentes.
