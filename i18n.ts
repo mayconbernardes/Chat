@@ -574,7 +574,6 @@ export const translations: Translations = {
     marketplaceSubtitle: 'Descubra produtos, serviços e trocas da comunidade.',
     viewOffer: 'Ver Oferta',
     sponsored: 'Patrocinado',
-    learnMore: 'Saiba Mais',
     ad_eco_title: 'Vida Ecológica',
     ad_eco_desc: 'Produtos sustentáveis para um estilo de vida mais verde.',
     ad_stream_title: 'StreamMax',
