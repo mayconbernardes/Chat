@@ -12,8 +12,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Verificar se está configurado
 export const isSupabaseConfigured = () => {
-    return supabaseUrl !== 'https://seu-projeto.supabase.co' &&
-        supabaseAnonKey !== 'sua-chave-anonima-aqui';
+    return !supabaseUrl.includes('seu-projeto') &&
+        !supabaseAnonKey.includes('sua-chave-anonima');
 };
 
 // Tipos
