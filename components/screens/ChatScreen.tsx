@@ -30,22 +30,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import ShieldOffIcon from '../icons/ShieldOffIcon';
 import { usePersonalization } from '../../contexts/PersonalizationContext';
 import StoreIcon from '../icons/StoreIcon';
-
-// Integrations (Supabase & Firebase)
-let useRealtimeChat: any = null;
-try {
-  // Tenta Supabase primeiro (mais fácil/gratuito)
-  const supabaseModule = require('../../useSupabaseChat');
-  useRealtimeChat = supabaseModule.useSupabaseChat;
-} catch (e) {
-  try {
-    // Fallback para Firebase
-    const firebaseModule = require('../../useFirebaseChat');
-    useRealtimeChat = firebaseModule.useFirebaseChat;
-  } catch (e2) {
-    console.log('Nenhum backend configurado - usando modo simulação');
-  }
-}
+import { useSupabaseChat } from '../../useSupabaseChat';
 
 // Helper component for User Avatar
 export const UserAvatar: React.FC<{ user: User | undefined, size?: string }> = ({ user, size = 'h-10 w-10' }) => {
@@ -756,9 +741,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, allUsers, onLogout
   const [userToBlock, setUserToBlock] = useState<User | null>(null);
   const [userToReport, setUserToReport] = useState<User | null>(null);
 
-  // Integração com Firebase (se configurado)
-  // Integração Realtime (Supabase ou Firebase)
-  const realtimeData = useRealtimeChat ? useRealtimeChat(currentUser, activeRoom.id) : null;
+  // Integração Realtime com Supabase
+  const realtimeData = useSupabaseChat(currentUser, activeRoom.id);
   const [useRealtime, setUseRealtime] = useState(false);
 
   // Prevenir scroll do body apenas na tela de chat (mobile)
