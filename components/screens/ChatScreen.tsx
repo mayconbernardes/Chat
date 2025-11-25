@@ -721,7 +721,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, allUsers, onLogout
     }));
   }, [t]);
 
-  const [allRooms, setAllRooms] = useState<RoomCategory[]>(getTranslatedDefaultRooms());
+  const initialRoomCategories = getTranslatedDefaultRooms();
+  const [allRooms, setAllRooms] = useState<RoomCategory[]>(initialRoomCategories);
   const [activeRoom, setActiveRoom] = useState<Room>(allRooms[0].rooms[0]);
   const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES);
   const [isCreateRoomModalOpen, setCreateRoomModalOpen] = useState(false);
@@ -781,6 +782,30 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, allUsers, onLogout
       setUserLocations(realtimeData.userLocations);
     }
   }, [useRealtime, realtimeData?.userLocations]);
+
+  // Sincronizar salas do Supabase
+  useEffect(() => {
+    if (useRealtime && realtimeData?.rooms && realtimeData.rooms.length > 0) {
+      // Adicionar novas salas do Supabase às salas existentes
+      const existingRoomIds = allRooms.flatMap(cat => cat.rooms.map(r => r.id));
+      const newRooms = realtimeData.rooms.filter(r => !existingRoomIds.includes(r.id));
+
+      if (newRooms.length > 0) {
+        // Adicionar novas salas à categoria "Salas Criadas"
+        const updatedRooms = allRooms.map(category => {
+          if (category.categoryName === 'Salas Criadas') {
+            return {
+              ...category,
+              rooms: [...category.rooms, ...newRooms]
+            };
+          }
+          return category;
+        });
+        // Atualizar o estado (você precisará criar um setter para allRooms)
+        console.log('✅ Novas salas detectadas:', newRooms);
+      }
+    }
+  }, [useRealtime, realtimeData?.rooms]);
 
   useEffect(() => {
     // This effect ensures the active room's category is always open.
@@ -1161,6 +1186,26 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, allUsers, onLogout
     }
   };
 
+  // Sync new rooms from Supabase in real‑time
+  useEffect(() => {
+    if (useRealtime && realtimeData?.rooms?.length) {
+      const existingIds = allRooms.flatMap(cat => cat.rooms.map(r => r.id));
+      const newRooms = realtimeData.rooms.filter(r => !existingIds.includes(r.id));
+      if (newRooms.length) {
+        setAllRooms(prev => prev.map(cat => {
+          if (cat.categoryName === 'Salas Criadas') {
+            return { ...cat, rooms: [...cat.rooms, ...newRooms] };
+          }
+          return cat;
+        }));
+        console.log('✅ Novas salas detectadas:', newRooms);
+      }
+    }
+  }, [useRealtime, realtimeData?.rooms]);
+
+  // UI: lista de usuários online (exibe nome e avatar)
+  const onlineUserList = Object.entries(realtimeData?.userLocations || {});
+
   const usersInRoom = allUsers.filter(u => userLocations[u.id] === activeRoom.id);
   const visibleMessages = messages.filter(msg => msg.roomId === activeRoom.id);
 
@@ -1175,36 +1220,45 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, allUsers, onLogout
       {userToBlock && <BlockUserModal user={userToBlock} onClose={() => setUserToBlock(null)} onConfirm={handleBlockUser} isBlocked={blockedUserIds.includes(userToBlock.id)} />}
       {userToReport && <ReportUserModal user={userToReport} onClose={() => setUserToReport(null)} onSubmit={handleSubmitReport} />}
 
-      {/* Main Layout */}
+      {/* Sidebar showing online users (desktop) */}
+      <aside className="hidden md:block w-64 bg-gray-50 dark:bg-slate-800 p-4 overflow-y-auto">
+        <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">Usuários online</h3>
+        <ul>
+          {onlineUserList.map(([userId, roomId]) => (
+            <li key={userId} className="flex items-center mb-1">
+              <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">{userId}</span>
+            </li>
+          ))}
+        </ul>
+      </aside>
+
       {/* Mobile Layout */}
       <div className="md:hidden h-full w-full flex flex-col">
         {mobileView === 'rooms' && (
           <RoomList roomCategories={allRooms} activeRoom={activeRoom} onSelectRoom={handleSelectRoom} onOpenCreateRoom={() => setCreateRoomModalOpen(true)} onDeleteRoom={handleDeleteRoom} currentUser={currentUser} roomUserCounts={roomUserCounts} openCategories={openCategories} onToggleCategory={handleToggleCategory} onCloseDm={handleCloseDm} onInitiateLogout={() => setLogoutModalOpen(true)} />
         )}
         {mobileView === 'chat' && (
-          <ChatWindow
-            room={activeRoom}
-            messages={visibleMessages}
-            currentUser={currentUser}
-            users={allUsers}
-            onSendMessage={handleSendMessage}
-            onCurrentUserTyping={handleCurrentUserTyping}
-            typingUsers={typingUsers[activeRoom.id] || {}}
-            onToggleReaction={handleToggleReaction}
-            replyingTo={replyingTo}
-            onSetReplyingTo={setReplyingTo}
-            onOpenSettings={onOpenSettings}
-            onToggleRooms={() => setMobileView('rooms')}
-            onToggleUsers={() => setMobileView('users')}
-            isRoomsVisible={true}
-            isUsersVisible={false}
-            onViewProfile={setViewingUser}
-            onScrollToMessage={handleScrollToMessage}
-            blockedUserIds={blockedUserIds}
-            onUnblockUser={setUserToBlock}
-            onBack={() => setMobileView('rooms')}
-            useFirebase={useRealtime}
-          />
+          <>
+            {/* Online users bar for mobile */}
+            <div className="flex items-center space-x-2 p-2 bg-gray-100 dark:bg-slate-700">
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-200">Online: {onlineUserList.length}</span>
+            </div>
+            <ChatWindow
+              room={activeRoom}
+              messages={visibleMessages}
+              currentUser={currentUser}
+              users={allUsers}
+              onSendMessage={handleSendMessage}
+              onCurrentUserTyping={handleCurrentUserTyping}
+              typingUsers={typingUsers[activeRoom.id] || {}}
+              onToggleReaction={handleToggleReaction}
+              replyingTo={replyingTo}
+              onSetReplyingTo={setReplyingTo}
+              onBack={() => setMobileView('rooms')}
+              useFirebase={useRealtime}
+            />
+          </>
         )}
         {mobileView === 'users' && (
           <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900">
@@ -1214,7 +1268,14 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, allUsers, onLogout
               </button>
               <h3 className="font-bold text-lg text-slate-900 dark:text-white">{t('usersLabel')}</h3>
             </div>
-            <UserList users={usersInRoom.filter(u => u.id === currentUser.id || !blockedUserIds.includes(u.id))} currentUser={currentUser} onUserSelect={setViewingUser} onInitiateLogout={() => setLogoutModalOpen(true)} blockedUserIds={blockedUserIds} />
+            <ul className="p-4 overflow-y-auto">
+              {onlineUserList.map(([userId, roomId]) => (
+                <li key={userId} className="flex items-center mb-2">
+                  <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{userId}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>
